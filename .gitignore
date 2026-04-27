@@ -1,0 +1,21 @@
+
+
+# Python
+__pycache__/
+*.pyc
+
+# Py Virtual environment
+venv/
+.env/
+
+*.png
+*.jpg
+old_files/
+
+output/
+input/
+
+# OS files - bullshit files
+.DS_Store
+Thumbs.db
+
