@@ -1,0 +1,74 @@
+body {
+    background-color: #080c14 !important;
+    color: #e2e8f0 !important;
+}
+.gradio-container {
+    font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 2rem 1rem !important;
+}
+.glass-card {
+    background: rgba(15, 23, 42, 0.6) !important;
+    backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 20px !important;
+    padding: 1.5rem !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+    margin-bottom: 1.5rem !important;
+}
+.gradient-title {
+    background: linear-gradient(135deg, #38bdf8 0%, #a855f7 100%) !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    font-size: 2.5rem !important;
+    font-weight: 800 !important;
+    text-align: center !important;
+    margin-bottom: 0.5rem !important;
+    letter-spacing: -0.025em !important;
+}
+.gradient-subtitle {
+    color: #94a3b8 !important;
+    text-align: center !important;
+    font-size: 1.1rem !important;
+    margin-bottom: 2rem !important;
+}
+.btn-primary {
+    background: linear-gradient(135deg, #0284c7 0%, #7e22ce 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 20px rgba(126, 34, 206, 0.4) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer !important;
+}
+.btn-primary:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(126, 34, 206, 0.6) !important;
+    filter: brightness(1.1) !important;
+}
+.btn-secondary {
+    background: rgba(30, 41, 59, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e2e8f0 !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+}
+.btn-secondary:hover {
+    background: rgba(51, 65, 85, 0.8) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+.accordion-header {
+    font-weight: 700 !important;
+    color: #f8fafc !important;
+}
+
+#output_image img {
+    max-width: none !important;
+    width: auto !important;
+    height: auto !important;
+}

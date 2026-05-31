@@ -29,35 +29,34 @@ def apply_glass_tile(block, mode):
     return apply_material(distorted, map_x, map_y, mode)
 
 
-def choose_mode(rng=random):
-    # return rng.choices(
-    #     ["frosted", "clear", "glossy"],
-    #     weights=[0.6, 0.2, 0.2],
-    #     k=1
-    # )[0]
-
-    modes = [
+def choose_mode(rng=random, style=None):
+    valid_modes = [
         "frosted",
         "clear",
         "glossy",
-        # "prism",
-        # "ripple",
-        # "magnify",
-        # "crystal",
+        "prism",
+        "ripple",
+        "magnify",
+        "crystal",
         "ice",
-        # "hazy",
+        "hazy",
+        "chromatic",
     ]
+
+    if style in valid_modes:
+        return style
 
     weights = [
-        0.35,  # frosted (most common)
-        0.15,  # clear
-        0.15,  # glossy
-        # 0.08,  # prism
-        # 0.08,  # ripple
-        # 0.06,  # magnify
-        # 0.05,  # crystal
-        0.04,  # ice
-        # 0.04,  # hazy
+        0.35,  # frosted
+        0.10,  # clear
+        0.10,  # glossy
+        0.10,  # prism
+        0.10,  # ripple
+        0.05,  # magnify
+        0.05,  # crystal
+        0.05,  # ice
+        0.05,  # hazy
+        0.05,  # chromatic
     ]
 
-    return rng.choices(modes, k=1)[0]
+    return rng.choices(valid_modes, weights=weights, k=1)[0]

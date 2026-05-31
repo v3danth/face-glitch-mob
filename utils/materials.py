@@ -8,17 +8,21 @@ from config import Config
 
 def apply_prism(img, map_x, map_y):
 
-    shift = random.uniform(1, 3)
+    shift = random.uniform(1, 7)
 
     b, g, r = cv2.split(img)
 
-    b = cv2.remap(b, map_x, map_y, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+    b = cv2.remap(b, map_x, map_y, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+    # b = cv2.GaussianBlur(b, (3, 3), 0)
+
     g = cv2.remap(
-        g, map_x + shift, map_y, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT
+        g, map_x + shift, map_y, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE
     )
+    # g = cv2.GaussianBlur(g, (3, 3), 0)
     r = cv2.remap(
-        r, map_x - shift, map_y, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT
+        r, map_x - shift, map_y, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE
     )
+    r = cv2.GaussianBlur(r, (3, 3), 0)
 
     return cv2.merge([b, g, r])
 
@@ -29,21 +33,24 @@ def apply_ripple(img, map_x, map_y):
 
     xx, yy = np.meshgrid(np.arange(w), np.arange(h))
 
-    freq = random.uniform(0.05, 0.15)
+    freq = random.uniform(0.01, 0.05)
 
-    amp = random.uniform(1, 3)
+    amp = random.uniform(0.5, 1.5)
 
     ripple_x = map_x + amp * np.sin(yy * freq)
 
     ripple_y = map_y + amp * np.cos(xx * freq)
 
-    return cv2.remap(
+    r = cv2.remap(
         img,
         ripple_x.astype(np.float32),
         ripple_y.astype(np.float32),
         cv2.INTER_LINEAR,
-        borderMode=cv2.BORDER_REFLECT,
+        borderMode=cv2.BORDER_REPLICATE,
     )
+    r = cv2.GaussianBlur(r, (3, 3), 0)
+
+    return r
 
 
 def apply_magnify(img, map_x, map_y):
@@ -66,18 +73,22 @@ def apply_magnify(img, map_x, map_y):
 
     new_y = cy + dy / factor
 
-    return cv2.remap(
+    r = cv2.remap(
         img,
         new_x.astype(np.float32),
         new_y.astype(np.float32),
         cv2.INTER_LINEAR,
-        borderMode=cv2.BORDER_REFLECT,
+        borderMode=cv2.BORDER_REPLICATE,
     )
+
+    r = cv2.GaussianBlur(r, (5, 5), 0)
+
+    return r
 
 
 def apply_crystal(img, map_x, map_y):
 
-    jitter = 3
+    jitter = 1
 
     jitter_x = map_x + np.random.uniform(-jitter, jitter, map_x.shape)
 
@@ -88,13 +99,13 @@ def apply_crystal(img, map_x, map_y):
         jitter_x.astype(np.float32),
         jitter_y.astype(np.float32),
         cv2.INTER_NEAREST,
-        borderMode=cv2.BORDER_REFLECT,
+        borderMode=cv2.BORDER_REPLICATE,
     )
 
 
 def apply_hazy(img):
 
-    blur = cv2.GaussianBlur(img, (25, 25), 0)
+    blur = cv2.GaussianBlur(img, (9, 9), 0)
 
     return cv2.addWeighted(img, 0.6, blur, 0.4, 0)
 
@@ -105,19 +116,28 @@ def apply_ice(img):
 
     noise = np.random.randn(h, w).astype(np.float32)
 
-    noise = cv2.GaussianBlur(noise, (9, 9), 0)
+    noise = cv2.GaussianBlur(noise, (5, 5), 0)
+
+    noise = cv2.GaussianBlur(noise, (1, 1), 0)
 
     map_x = np.tile(np.arange(w), (h, 1)).astype(np.float32)
 
     map_y = np.tile(np.arange(h).reshape(-1, 1), (1, w)).astype(np.float32)
 
-    map_x += noise * 5
+    map_x += noise * 1.3
 
-    map_y += noise * 5
-
-    return cv2.remap(
-        img, map_x, map_y, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT
+    map_y += noise * 1.3
+    r = cv2.remap(
+        img, map_x, map_y, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE
     )
+
+    r = cv2.GaussianBlur(r, (13, 1), 0)
+    # if random.random() < 0.5:
+    #     r = cv2.GaussianBlur(r, (3, 27), 0)
+    # else    :
+    #     r = cv2.GaussianBlur(r, (27, 3), 0)
+
+    return r
 
 
 def apply_frosted(img):
@@ -125,6 +145,54 @@ def apply_frosted(img):
     k = random.choice(Config.FROSTED_KERNEL_CHOICES)
 
     return cv2.GaussianBlur(img, (k, k), 0)
+
+
+def apply_directional_frost(img, ksize=25):
+    #Gargabe dont use this, it looks bad
+    kernel = np.zeros((ksize, ksize))
+    kernel[ksize // 2, :] = np.ones(ksize)
+    kernel /= ksize
+
+    blurred = cv2.filter2D(img, -1, kernel)
+
+    return cv2.addWeighted(img, 0.4, blurred, 0.6, 0)
+
+
+def apply_chromatic_glass(img, map_x, map_y):
+    h, w = img.shape[:2]
+    cx, cy = w // 2, h // 2
+
+    dx = map_x - cx
+    dy = map_y - cy
+    r = np.sqrt(dx**2 + dy**2).astype(np.float32)
+
+    shift = (r * 0.05 + 1.0).astype(np.float32)
+    # shift = (r * 0.002).astype(np.float32)
+    b, g, rch = cv2.split(img)
+
+    b = cv2.remap(
+        b,
+        (map_x - shift).astype(np.float32),
+        map_y,
+        cv2.INTER_LINEAR,
+        borderMode=cv2.BORDER_REPLICATE,
+    )
+    g = cv2.remap(
+        g,
+        map_x,
+        map_y,
+        cv2.INTER_LINEAR,
+        borderMode=cv2.BORDER_REPLICATE,
+    )
+    rch = cv2.remap(
+        rch,
+        (map_x + shift).astype(np.float32),
+        map_y,
+        cv2.INTER_LINEAR,
+        borderMode=cv2.BORDER_REPLICATE,
+    )
+
+    return cv2.merge([b, g, rch])
 
 
 def apply_clear(img, map_x, map_y):
@@ -186,38 +254,36 @@ def apply_glossy(img):
 
 def apply_material(img, map_x, map_y, mode):
 
-    if mode == "frosted":
+    match mode:
+        case "frosted":
+            return apply_frosted(img)
 
-        return apply_frosted(img)
+        case "clear":
+            return apply_clear(img, map_x, map_y)
 
-    elif mode == "clear":
+        case "chromatic":
+            return apply_chromatic_glass(img, map_x, map_y)
 
-        return apply_clear(img, map_x, map_y)
+        case "prism":
+            return apply_prism(img, map_x, map_y)
 
-    elif mode == "prism":
+        case "ripple":
+            return apply_ripple(img, map_x, map_y)
 
-        return apply_prism(img, map_x, map_y)
+        case "magnify":
+            return apply_magnify(img, map_x, map_y)
 
-    elif mode == "ripple":
+        case "crystal":
+            return apply_crystal(img, map_x, map_y)
 
-        return apply_ripple(img, map_x, map_y)
+        case "ice":
+            return apply_ice(img)
 
-    elif mode == "magnify":
+        case "hazy":
+            return apply_hazy(img)
 
-        return apply_magnify(img, map_x, map_y)
+        case "glossy":
+            return apply_glossy(img)
 
-    elif mode == "crystal":
-
-        return apply_crystal(img, map_x, map_y)
-
-    elif mode == "ice":
-
-        return apply_ice(img)
-
-    elif mode == "hazy":
-
-        return apply_hazy(img)
-
-    else:
-
-        return apply_glossy(img)
+        case _:
+            raise ValueError(f"Unknown mode: {mode}")

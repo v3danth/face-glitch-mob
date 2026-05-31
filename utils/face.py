@@ -2,19 +2,22 @@ import numpy as np
 
 from config import Config
 
-from .blending import blend
+from .blending import blend, create_fade_mask
 from .tiles import apply_glass_tile, choose_mode
 
 
-def process_tile(face, output, x0, y0, bw, bh):
+def process_tile(face, output, x0, y0, bw, bh, style=None, feather_edges=True):
 
     block = face[y0 : y0 + bh, x0 : x0 + bw]
 
-    mode = choose_mode()
+    mode = choose_mode(style=style)
 
     processed = apply_glass_tile(block, mode)
 
-    mask = np.ones((bh, bw, 3), dtype=np.float32)
+    if feather_edges:
+        mask = create_fade_mask(bh, bw)
+    else:
+        mask = np.ones((bh, bw, 3), dtype=np.float32)
 
     region = output[y0 : y0 + bh, x0 : x0 + bw]
 
@@ -23,10 +26,12 @@ def process_tile(face, output, x0, y0, bw, bh):
     output[y0 : y0 + bh, x0 : x0 + bw] = blended
 
 
-def stylized_face_glass(image, face_box, grid_size=None):
+def stylized_face_glass(image, face_box, grid_size=None, style=None, feather_edges=True):
     """
     Apply stylized glass effect to a face region.
     grid_size: number of tiles per face side (int, optional)
+    style: specific glass material style (str, optional)
+    feather_edges: whether to apply smooth blending to tile edges (bool, default True)
     """
     if grid_size is None:
         grid_size = Config.GRID_SIZE
@@ -48,7 +53,7 @@ def stylized_face_glass(image, face_box, grid_size=None):
         for j in range(grid_size):
             bw = tile_w + (1 if j < extra_w else 0)
 
-            process_tile(face, output, x_cursor, y_cursor, bw, bh)
+            process_tile(face, output, x_cursor, y_cursor, bw, bh, style=style, feather_edges=feather_edges)
             x_cursor += bw
 
         y_cursor += bh

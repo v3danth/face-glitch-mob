@@ -3,6 +3,7 @@
 # Python
 __pycache__/
 *.pyc
+face_glitch_mob.egg-info/
 
 # Py Virtual environment
 venv/

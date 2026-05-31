@@ -44,6 +44,9 @@ class Config:
     GRID_SIZE: int = int(os.getenv("GRID_SIZE", 8))
     """Grid size for glass tiling (int)"""
 
+    FEATHER_EDGES: bool = os.getenv("FEATHER_EDGES", "True").lower() == "true"
+    """Whether to use smooth/feathered edge blending for tiles by default (bool)"""
+
     # Distortion
     DISTORTION_STRENGTH_MIN: float = float(os.getenv("DISTORTION_STRENGTH_MIN", 5))
     """Minimum distortion strength (float)"""

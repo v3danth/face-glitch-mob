@@ -4,8 +4,6 @@ import numpy as np
 def create_fade_mask(height, width):
 
     mask = np.ones((height, width, 3), dtype=np.float32)
-    mask[k, :] *= val
-    mask[:, k] *= val
 
     fade = int(min(height, width) * 0.08)
 
