@@ -44,6 +44,13 @@ class Config:
     GRID_SIZE: int = int(os.getenv("GRID_SIZE", 8))
     """Grid size for glass tiling (int)"""
 
+    LIKENESS: float = float(os.getenv("LIKENESS", 0.9))
+    """How much of the face's coarse look to keep, 0-1 (float). At 1 a
+    thumbnail of the output matches the original; zoomed in, only glass shows."""
+
+    INTENSITY: float = float(os.getenv("INTENSITY", 1.0))
+    """Scales glass blur and distortion; lower shows more of the face (float)"""
+
     FEATHER_EDGES: bool = os.getenv("FEATHER_EDGES", "True").lower() == "true"
     """Whether to use smooth/feathered edge blending for tiles by default (bool)"""
 
@@ -56,40 +63,6 @@ class Config:
 
     NOISE_FACTOR: float = float(os.getenv("NOISE_FACTOR", 2))
     """Noise factor for distortion (float)"""
-
-    # Frosted material
-    FROSTED_KERNEL_CHOICES: list = [
-        int(x) for x in os.getenv("FROSTED_KERNEL_CHOICES", "15,27,31").split(",")
-    ]
-    """Kernel sizes for frosted blur (list of int)"""
-
-    # Clear material
-    CLEAR_BLUR_KERNEL: int = int(os.getenv("CLEAR_BLUR_KERNEL", 7))
-    """Kernel size for clear blur (int)"""
-
-    # Glossy material
-    GLOSSY_BLUR_KERNEL: int = int(os.getenv("GLOSSY_BLUR_KERNEL", 9))
-    """Kernel size for glossy blur (int)"""
-
-    HIGHLIGHT_BLUR_KERNEL: int = int(os.getenv("HIGHLIGHT_BLUR_KERNEL", 15))
-    """Kernel size for highlight blur (int)"""
-
-    HIGHLIGHT_LINE_COLOR: tuple = tuple(
-        int(x) for x in os.getenv("HIGHLIGHT_LINE_COLOR", "255,255,255").split(",")
-    )
-    """Color of highlight line (tuple of int, RGB)"""
-
-    HIGHLIGHT_LINE_THICKNESS: int = int(os.getenv("HIGHLIGHT_LINE_THICKNESS", 1))
-    """Thickness of highlight line (int)"""
-
-    HIGHLIGHT_LINE_POSITION: float = float(os.getenv("HIGHLIGHT_LINE_POSITION", 0.5))
-    """Relative vertical position of highlight line (float, 0-1)"""
-
-    GLOSSY_WEIGHT: float = float(os.getenv("GLOSSY_WEIGHT", 0.85))
-    """Weight for glossy blur in blending (float)"""
-
-    HIGHLIGHT_WEIGHT: float = float(os.getenv("HIGHLIGHT_WEIGHT", 0.15))
-    """Weight for highlight in blending (float)"""
 
     # Output
     OUTPUT_PATH: str = os.getenv("OUTPUT_PATH", "output/output_with_faces.jpg")

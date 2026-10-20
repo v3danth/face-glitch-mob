@@ -5,7 +5,14 @@ A Python project to apply stylized glass effects to face(s) in images using Open
 ## Features
 - Detects faces in an input image using Haar cascades
 - Applies a glass tile effect to each detected face
-- Supports multiple glass styles: frosted, clear, glossy
+- Physically based glass: Snell refraction, Cauchy dispersion, Fresnel reflection,
+  GGX highlights, surface scattering and Beer-Lambert absorption
+- Glass styles: frosted, clear, glossy, prism, ripple, magnify, crystal, ice, hazy,
+  chromatic, and liquid (Apple-style Liquid Glass)
+- Tints: dyed colour, auto (random hue per tile), rainbow (dichroic thin-film
+  interference) and noise (pigment grain); ice and prism grain direction
+- Face Grid Painter (web UI, `python app.py`): click cells on enlarged faces to
+  give each tile its own pattern, tint and direction
 - Highly configurable via `.env` file
 - Modular codebase for easy extension
 
@@ -28,7 +35,30 @@ Install dependencies:
 pip install opencv-python numpy python-dotenv
 ```
 
-## Usage
+## Web apps
+Two front ends, served by one local server (binds to 127.0.0.1 only):
+```bash
+python -m server.app
+```
+- **Glass Studio** at http://127.0.0.1:8000/studio/ renders with the Python
+  physics in `utils/`. Photos go only to the local server and are held in
+  memory, never written to disk.
+- **Glass GL** at http://127.0.0.1:8000/gl/ runs the same physics as WebGL
+  shaders and detects faces in the browser; photos never leave the page.
+
+Both share `frontend/shared/` (state machines, settings validation, layout).
+Design and state diagrams: `docs/frontend-design.md`.
+
+## Tests and simulators
+```bash
+python -m unittest discover -s tests -t .              # physics, tints, API
+node --test frontend/shared/*.test.js frontend/studio/*.test.js frontend/gl/*.test.js
+python tools/simulate_api.py --clients 8 --actions 20  # needs the server running
+node tools/e2e_studio.mjs input/input.jpg              # real headless Chromium; needs the server
+python tools/simulate_ui.py                            # the legacy Gradio UI
+```
+
+## Usage (scripts)
 1. Place your input image as `input.jpg` in the project root (or set `INPUT_IMAGE` in `.env`).
 2. Configure parameters in the `.env` file as needed.
 3. Run the main script:
@@ -47,16 +77,8 @@ The project supports configurable parameters via a `.env` file and a central `Co
 - `FACE_DETECT_MIN_NEIGHBORS`: Minimum neighbors for detection
 - `FACE_DETECT_WEIGHT_THRESHOLD`: Weight threshold for valid faces
 - `GRID_SIZE`: Number of tiles per face
-- `DISTORTION_STRENGTH_MIN`/`MAX`: Range for distortion strength
-- `NOISE_FACTOR`: Noise factor for distortion
-- `FROSTED_KERNEL_CHOICES`: Kernel sizes for frosted blur
-- `CLEAR_BLUR_KERNEL`: Kernel size for clear blur
-- `GLOSSY_BLUR_KERNEL`: Kernel size for glossy blur
-- `HIGHLIGHT_BLUR_KERNEL`: Kernel size for highlight blur
-- `HIGHLIGHT_LINE_COLOR`: RGB color for highlight line
-- `HIGHLIGHT_LINE_THICKNESS`: Thickness of highlight line
-- `HIGHLIGHT_LINE_POSITION`: Relative position of highlight line
-- `GLOSSY_WEIGHT`/`HIGHLIGHT_WEIGHT`: Blending weights
+- `DISTORTION_STRENGTH_MIN`/`MAX`: Range of surface relief per tile (8 = nominal shape)
+- `NOISE_FACTOR`: Strength of small manufacturing ripples in the glass
 - `OUTPUT_PATH`: Output image path
 - `INPUT_IMAGE`: Input image path
 
@@ -64,22 +86,30 @@ The project supports configurable parameters via a `.env` file and a central `Co
 ```
 main.py                # Entry point
 config.py              # Config class loading .env
-cli.py                 # CLI tools TODO owo
+cli.py                 # CLI for single images and folders
 .env                   # Configurable parameters
+server/app.py          # Local API + static server for both front ends
+frontend/
+    shared/            # State machines, model, board geometry (+ tests)
+    studio/            # HTML/JS page rendering through the Python API
+    gl/                # WebGL page rendering in the browser
+tools/                 # User simulators (API, legacy Gradio UI)
+docs/                  # Design docs
 utils/
-    blending.py        # Blending functions
-    distortion.py      # Distortion logic
-    face.py            # Face effect logic
-    materials.py       # Glass material effects
-    mesh.py            # Mesh/grid utilities
-    remap.py           # Remapping helpers
-    tiles.py           # Tile effect logic
+    detect.py          # Haar face detection, multi-scale voting, per-thread cascades
+    face.py            # Face tiling, linear-light conversion
+    materials.py       # Material presets (IOR, Abbe, roughness...) and tile renderer
+    optics.py          # Snell, Fresnel, dispersion, GGX, absorption
+    surfaces.py        # Glass height fields (lens, ridges, facets, capsule...)
+    tiles.py           # TileStyle, material choice and per-tile relief
+    tints.py           # Dye absorption, thin-film rainbow, pigment noise
+web/painter.py         # Face board drawing and click-to-cell mapping
 old_files/             # Legacy scripts
 ```
 
 ## Extending
-- Added new glass styles in `utils/materials.py` but still not working coz they it looks bad and need to update `choose_mode` in `utils/tiles.py`.
-- Add new configuration options for choose_mode to `.env` and `config.py`.
+- Add a glass style by writing a height field in `utils/surfaces.py` and a
+  `Material` entry in `utils/materials.py`; the CLI and web UI pick it up automatically.
 
 ## License
 MIT License

@@ -72,3 +72,18 @@ body {
     width: auto !important;
     height: auto !important;
 }
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    font-size: 0.8rem;
+    color: #cbd5e1;
+}
+.legend-chip i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 4px;
+    border-radius: 2px;
+}

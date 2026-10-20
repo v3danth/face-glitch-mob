@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Glass GL</title>
+  <meta name="description" content="Physically based glass over faces, rendered on your GPU. Your photo never leaves the page.">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Glass GL</h1>
+    <p class="tagline">Physically based glass over faces, rendered on your GPU. Your photo never leaves this page.</p>
+  </header>
+
+  <main class="layout">
+    <section class="panel" aria-label="Controls">
+      <div class="card">
+        <h2>Photo</h2>
+        <label class="drop" id="drop">
+          <input type="file" id="file" accept="image/*">
+          <span>Choose a photo or drop it here</span>
+        </label>
+        <p class="status" id="status" role="status" aria-live="polite">No photo yet.</p>
+        <div class="row">
+          <button type="button" id="markFace" aria-pressed="false">Mark a face</button>
+          <button type="button" id="removePhoto">Remove photo</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Presets</h2>
+        <div class="row" id="presets"></div>
+      </div>
+
+      <div class="card">
+        <h2>Grid</h2>
+        <label class="field">Cells per face side <output id="gridOut"></output>
+          <input type="range" id="grid" min="1" max="12" step="1"></label>
+        <label class="field">Seed (same seed, same glass)
+          <input type="number" id="seed" min="0" step="1" inputmode="numeric"></label>
+        <label class="check"><input type="checkbox" id="seamless"> Seamless blend between tiles</label>
+        <label class="field">Likeness <output id="likenessOut"></output>
+          <input type="range" id="likeness" min="0" max="1" step="0.05"></label>
+        <label class="field">Intensity (lower shows more of the face) <output id="intensityOut"></output>
+          <input type="range" id="intensity" min="0.1" max="1.5" step="0.05"></label>
+        <details>
+          <summary>Surface relief</summary>
+          <label class="field">Min distortion <output id="distortionMinOut"></output>
+            <input type="range" id="distortionMin" min="0" max="30" step="0.5"></label>
+          <label class="field">Max distortion <output id="distortionMaxOut"></output>
+            <input type="range" id="distortionMax" min="0" max="30" step="0.5"></label>
+          <label class="field">Manufacturing ripple <output id="noiseOut"></output>
+            <input type="range" id="noise" min="0" max="10" step="0.1"></label>
+        </details>
+      </div>
+
+      <div class="card">
+        <h2>Brush</h2>
+        <label class="field">Glass pattern <select id="material"></select></label>
+        <label class="field">Tint <select id="tintMode"></select></label>
+        <label class="field">Tint colour (color mode) <input type="color" id="tintColor"></label>
+        <label class="field">Tint strength <output id="tintStrengthOut"></output>
+          <input type="range" id="tintStrength" min="0" max="1" step="0.05"></label>
+        <label class="check"><input type="checkbox" id="randomAngle"> Random grain direction (ice, prism)</label>
+        <label class="field">Grain direction <output id="angleOut"></output>
+          <input type="range" id="angle" min="0" max="180" step="5"></label>
+        <div class="row">
+          <button type="button" id="paintAll">Paint all cells</button>
+          <button type="button" id="clearCells">Clear painting</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" aria-label="Result">
+      <div class="card">
+        <h2>Face board</h2>
+        <p class="hint">Click a cell to paint it with the brush; click again with the same brush to clear it.</p>
+        <canvas id="board" class="board" tabindex="0" aria-label="Enlarged faces. Click a cell to paint it, or use the arrow keys and Enter."></canvas>
+      </div>
+      <div class="card">
+        <div class="row spread">
+          <h2>Result</h2>
+          <button type="button" id="download" class="primary">Download PNG</button>
+        </div>
+        <div class="photo-wrap">
+          <canvas id="photo" class="photo"></canvas>
+          <canvas id="overlay" class="overlay" aria-hidden="true"></canvas>
+        </div>
+        <pre id="bench" class="bench" hidden></pre>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Glass Studio</title>
+  <link rel="stylesheet" href="studio.css">
+  <script type="module" src="studio.js"></script>
+</head>
+<body>
+  <header class="top">
+    <h1>Glass Studio</h1>
+    <p>Physically modelled glass over faces. Rendered by your local Python server; nothing leaves this machine.
+      <a href="../gl/">Try the in-browser WebGL version</a>.</p>
+  </header>
+
+  <main class="layout">
+    <section class="panel controls" aria-label="Controls">
+      <div class="card">
+        <h2>Photo</h2>
+        <label class="drop" id="drop">
+          <input type="file" id="file" accept="image/*">
+          <span>Choose a photo or drop it here</span>
+        </label>
+        <p id="status" class="status" role="status" aria-live="polite">No photo yet.</p>
+        <div class="row">
+          <button type="button" id="draw-face" aria-pressed="false">Draw a face box</button>
+          <button type="button" id="download" disabled>Download PNG</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Presets</h2>
+        <div class="row" id="presets"></div>
+      </div>
+
+      <div class="card">
+        <h2>Glass</h2>
+        <label>Cells per face side <output for="grid"></output>
+          <input type="range" id="grid" min="1" max="12" step="1"></label>
+        <label>Intensity <output for="intensity"></output>
+          <input type="range" id="intensity" min="0.1" max="1.5" step="0.05"></label>
+        <label>Likeness when small <output for="likeness"></output>
+          <input type="range" id="likeness" min="0" max="1" step="0.05"></label>
+        <label class="check"><input type="checkbox" id="seamless"> Seamless blend between tiles</label>
+        <label>Seed <input type="number" id="seed" min="0" step="1" inputmode="numeric"></label>
+        <details>
+          <summary>Surface</summary>
+          <label>Min relief <output for="distortionMin"></output>
+            <input type="range" id="distortionMin" min="0" max="30" step="0.5"></label>
+          <label>Max relief <output for="distortionMax"></output>
+            <input type="range" id="distortionMax" min="0" max="30" step="0.5"></label>
+          <label>Ripple <output for="noise"></output>
+            <input type="range" id="noise" min="0" max="10" step="0.1"></label>
+        </details>
+      </div>
+
+      <div class="card">
+        <h2>Brush</h2>
+        <label>Pattern <select id="material"></select></label>
+        <label>Tint <select id="tintMode"></select></label>
+        <label>Tint colour <input type="color" id="tintColor"></label>
+        <label>Tint strength <output for="tintStrength"></output>
+          <input type="range" id="tintStrength" min="0" max="1" step="0.05"></label>
+        <label class="check"><input type="checkbox" id="randomAngle"> Random grain direction</label>
+        <label>Grain direction <output for="angle"></output>
+          <input type="range" id="angle" min="0" max="180" step="5"></label>
+        <div class="row">
+          <button type="button" id="paint-all">Paint all cells</button>
+          <button type="button" id="clear">Clear painting</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel views" aria-label="Preview">
+      <div class="card">
+        <h2>Faces <small>click a cell to paint it, again to clear</small></h2>
+        <canvas id="board" class="board" width="320" height="320" aria-label="Face board"></canvas>
+        <p id="legend" class="legend"></p>
+      </div>
+      <div class="card">
+        <h2>Result <small id="timing"></small></h2>
+        <div class="result-wrap">
+          <canvas id="result" class="result" width="1" height="1" aria-label="Result"></canvas>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

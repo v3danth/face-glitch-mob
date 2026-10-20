@@ -4,7 +4,9 @@ import logging
 import cv2
 
 from config import Config
+from utils.detect import detect_faces
 from utils.face import stylized_face_glass
+from utils.materials import MATERIAL_NAMES
 
 # Configure logging
 logging.basicConfig(
@@ -24,43 +26,31 @@ def get_mode_settings(mode: str):
     return modes.get(mode, modes["medium"])
 
 
-def process_single_image(input_path: str, output_path: str, grid_size: int, scale: float, style: str, feather: bool, threshold: float) -> bool:
+def process_single_image(input_path: str, output_path: str, grid_size: int, scale: float, style: str, feather: bool, threshold: float, likeness: float, intensity: float) -> bool:
     logger.info(f"Processing image: {input_path}")
     image = cv2.imread(input_path)
     if image is None:
         logger.error(f"Could not load image: {input_path}")
         return False
 
-    if scale != 1.0:
-        image = cv2.resize(image, None, fx=scale, fy=scale)
-
-    face_cascade = cv2.CascadeClassifier(
-        cv2.data.haarcascades + Config.FACE_CASCADE_PATH
+    # Detect on a downscaled copy, render on the full-resolution photo.
+    faces = detect_faces(
+        image, Config.FACE_DETECT_SCALE, Config.FACE_DETECT_MIN_NEIGHBORS, threshold, scale
     )
+    logger.info(f"Detected {len(faces)} face(s) in {input_path}")
 
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    faces, _, weights = face_cascade.detectMultiScale3(
-        gray,
-        Config.FACE_DETECT_SCALE,
-        Config.FACE_DETECT_MIN_NEIGHBORS,
-        outputRejectLevels=True,
-    )
+    for box in faces:
+        image = stylized_face_glass(
+            image,
+            box,
+            grid_size=grid_size,
+            style=style,
+            feather_edges=feather,
+            likeness=likeness,
+            intensity=intensity,
+        )
 
-    logger.info(f"Detected {len(faces)} face candidate(s) in {input_path}")
-
-    processed_count = 0
-    for (x, y, w, h), weight in zip(faces, weights):
-        if weight > threshold:
-            image = stylized_face_glass(
-                image,
-                (x, y, w, h),
-                grid_size=grid_size,
-                style=style,
-                feather_edges=feather
-            )
-            processed_count += 1
-
-    logger.info(f"Applied glass glitch style '{style or 'random'}' to {processed_count} verified face(s)")
+    logger.info(f"Applied glass glitch style '{style or 'random'}' to {len(faces)} verified face(s)")
 
     # Ensure output directory exists
     out_dir = os.path.dirname(output_path)
@@ -72,7 +62,7 @@ def process_single_image(input_path: str, output_path: str, grid_size: int, scal
     return True
 
 
-def process_bulk(input_dir: str, output_dir: str, grid_size: int, scale: float, style: str, feather: bool, threshold: float):
+def process_bulk(input_dir: str, output_dir: str, grid_size: int, scale: float, style: str, feather: bool, threshold: float, likeness: float, intensity: float):
     if not os.path.exists(input_dir):
         logger.error(f"Input directory does not exist: {input_dir}")
         return
@@ -99,7 +89,9 @@ def process_bulk(input_dir: str, output_dir: str, grid_size: int, scale: float, 
                 scale=scale,
                 style=style,
                 feather=feather,
-                threshold=threshold
+                threshold=threshold,
+                likeness=likeness,
+                intensity=intensity,
             ):
                 success_count += 1
         except Exception as e:
@@ -124,7 +116,7 @@ def main():
     )
     parser.add_argument(
         "-s", "--style", default=None,
-        choices=["frosted", "clear", "glossy", "prism", "ripple", "magnify", "crystal", "ice", "hazy", "chromatic", "random"],
+        choices=[*MATERIAL_NAMES, "random"],
         help="Specify a glass material style (default: random mixture)"
     )
     parser.add_argument(
@@ -134,6 +126,16 @@ def main():
     parser.add_argument(
         "-t", "--threshold", type=float, default=None,
         help=f"Face detection confidence weight threshold (default: {Config.FACE_DETECT_WEIGHT_THRESHOLD})"
+    )
+
+    parser.add_argument(
+        "-l", "--likeness", type=float, default=Config.LIKENESS,
+        help=f"0-1: keep the face recognisable as a thumbnail but hidden when zoomed (default: {Config.LIKENESS})"
+    )
+
+    parser.add_argument(
+        "--intensity", type=float, default=Config.INTENSITY,
+        help=f"Glass blur and distortion strength; lower shows more of the face (default: {Config.INTENSITY})"
     )
 
     args = parser.parse_args()
@@ -153,7 +155,9 @@ def main():
             scale=scale,
             style=style,
             feather=args.feather,
-            threshold=threshold
+            threshold=threshold,
+            likeness=args.likeness,
+            intensity=args.intensity,
         )
     else:
         process_single_image(
@@ -163,7 +167,9 @@ def main():
             scale=scale,
             style=style,
             feather=args.feather,
-            threshold=threshold
+            threshold=threshold,
+            likeness=args.likeness,
+            intensity=args.intensity,
         )
 
 
